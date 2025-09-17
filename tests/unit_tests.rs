@@ -1,4 +1,4 @@
-use sui_token_tracker::{
+use sui_token_transfer_tracker::{
     TokenTransferTracker, Config, 
     error::TrackerError,
     sui_client::SuiClient,
@@ -115,7 +115,7 @@ async fn test_alert_system_basic() {
     // Check if alert was received
     if let Some(alert) = receiver.recv().await {
         match alert {
-            sui_token_tracker::alert_system::Alert::LowBalance { address, balance, threshold, .. } => {
+            sui_token_transfer_tracker::alert_system::Alert::LowBalance { address, balance, threshold, .. } => {
                 assert_eq!(address, "0xtest");
                 assert_eq!(balance, 500000000);
                 assert_eq!(threshold, 1000000000);
@@ -174,7 +174,7 @@ async fn test_config_basic() {
     
     // Test configuration merging
     let mut config = Config::default();
-    let args = sui_token_tracker::config::ConfigArgs {
+    let args = sui_token_transfer_tracker::config::ConfigArgs {
         rpc_url: Some("https://custom.rpc".to_string()),
         poll_interval: Some(5),
         addresses: vec!["0x1234567890abcdef1234567890abcdef12345678".to_string()],
@@ -189,7 +189,7 @@ async fn test_config_basic() {
 
 #[tokio::test]
 async fn test_error_handling_basic() {
-    use sui_token_tracker::error::{TrackerError, utils};
+    use sui_token_transfer_tracker::error::{TrackerError, utils};
     
     // Test error creation
     let network_error = TrackerError::network_error("Network failure");
@@ -210,12 +210,14 @@ async fn test_error_handling_basic() {
     assert!(error_msg.contains("Network failure"));
     
     // Test retry operation
-    let mut attempts = 0;
+    let attempts = std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0));
+    let attempts_clone = attempts.clone();
     let result = utils::retry_operation(
-        || {
-            attempts += 1;
-            async {
-                if attempts < 3 {
+        move || {
+            let attempts = attempts_clone.clone();
+            async move {
+                let current = attempts.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
+                if current < 3 {
                     Err(TrackerError::network_error("Temporary failure"))
                 } else {
                     Ok("success")
@@ -227,7 +229,7 @@ async fn test_error_handling_basic() {
     ).await;
     
     assert_eq!(result.unwrap(), "success");
-    assert_eq!(attempts, 3);
+    assert_eq!(attempts.load(std::sync::atomic::Ordering::SeqCst), 3);
 }
 
 #[tokio::test]
@@ -236,7 +238,7 @@ async fn test_tracker_basic() {
     let tracker_result = TokenTransferTracker::new(config).await;
     
     match tracker_result {
-        Ok(mut tracker) => {
+        Ok(tracker) => {
             // Test initial state
             assert!(!tracker.is_running().await);
             assert_eq!(tracker.get_all_addresses().await.len(), 0);
@@ -311,7 +313,7 @@ async fn test_export_operations() {
     
     // Test JSON export
     let json_result = processor.export_data(
-        sui_token_tracker::transaction_processor::ExportFormat::Json
+        sui_token_transfer_tracker::transaction_processor::ExportFormat::Json
     ).await;
     assert!(json_result.is_ok());
     
@@ -321,7 +323,7 @@ async fn test_export_operations() {
     
     // Test CSV export
     let csv_result = processor.export_data(
-        sui_token_tracker::transaction_processor::ExportFormat::Csv
+        sui_token_transfer_tracker::transaction_processor::ExportFormat::Csv
     ).await;
     assert!(csv_result.is_ok());
     
@@ -343,7 +345,7 @@ async fn test_cleanup_operations() {
 
 #[test]
 fn test_address_validation() {
-    use sui_token_tracker::config::Config;
+    use sui_token_transfer_tracker::config::Config;
     
     // Valid addresses
     assert!(Config::is_valid_sui_address("0x1234567890abcdef1234567890abcdef12345678"));

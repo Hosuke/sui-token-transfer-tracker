@@ -288,6 +288,11 @@ impl AlertSystem {
         // 添加到历史记录
         self.add_to_history(alert.clone()).await;
 
+        // 发送到channel (用于测试和其他组件)
+        if let Err(_) = self.alert_sender.send(alert.clone()) {
+            log::warn!("Failed to send alert to channel, receiver may be dropped");
+        }
+
         log::info!("Alert sent: {}", alert_key);
         Ok(())
     }

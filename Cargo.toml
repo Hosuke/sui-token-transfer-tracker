@@ -9,7 +9,7 @@ repository = "https://github.com/hosuke/sui-token-transfer-tracker"
 readme = "README.md"
 
 [dependencies]
-# Sui SDK - using official Rust SDK
+# Sui SDK - 使用官方 Rust SDK
 sui-graphql-client = { git = "https://github.com/mystenlabs/sui-rust-sdk", package = "sui-graphql-client", branch = "master" }
 sui-sdk-types = { git = "https://github.com/mystenlabs/sui-rust-sdk", package = "sui-sdk-types", branch = "master" }
 cynic = "3.8.0"
@@ -58,6 +58,9 @@ warp = { version = "0.3", optional = true }
 tokio-test = "0.4"
 mockall = "0.11"
 
+[build-dependencies]
+sui-graphql-client-build = { git = "https://github.com/mystenlabs/sui-rust-sdk", package = "sui-graphql-client-build", branch = "master" }
+
 [features]
 default = []
 web-ui = ["warp"]
@@ -67,8 +70,8 @@ name = "sui-token-transfer-tracker"
 path = "src/main.rs"
 
 [[example]]
-name = "minimal_test"
-path = "examples/minimal_test.rs"
+name = "test_graphql_client"
+path = "examples/test_graphql_client.rs"
 
 [[example]]
 name = "test_formatter"
@@ -77,14 +80,6 @@ path = "examples/test_formatter.rs"
 [[example]]
 name = "demo"
 path = "examples/demo.rs"
-
-[[example]]
-name = "query_address"
-path = "examples/query_address.rs"
-
-[[example]]
-name = "query_real_address"
-path = "examples/query_real_address.rs"
 
 [[example]]
 name = "simple_sui_test"

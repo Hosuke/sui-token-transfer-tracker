@@ -191,12 +191,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_retry_operation_success() {
-        let mut attempts = 0;
+        let attempts = std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0));
+        let attempts_clone = attempts.clone();
         let result = utils::retry_operation(
-            || {
-                attempts += 1;
-                async {
-                    if attempts < 3 {
+            move || {
+                let attempts = attempts_clone.clone();
+                async move {
+                    let current = attempts.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
+                    if current < 3 {
                         Err(TrackerError::network_error("Temporary failure"))
                     } else {
                         Ok("success")
@@ -208,12 +210,12 @@ mod tests {
         ).await;
 
         assert_eq!(result.unwrap(), "success");
-        assert_eq!(attempts, 3);
+        assert_eq!(attempts.load(std::sync::atomic::Ordering::SeqCst), 3);
     }
 
     #[tokio::test]
     async fn test_retry_operation_failure() {
-        let result = utils::retry_operation(
+        let result: Result<&str, TrackerError> = utils::retry_operation(
             || async {
                 Err(TrackerError::config_error("Permanent failure"))
             },
@@ -242,11 +244,11 @@ mod tests {
     #[test]
     fn test_measure_time() {
         let (result, duration) = utils::measure_time(|| {
-            std::thread::sleep(StdDuration::from_millis(10));
+            std::thread::sleep(std::time::Duration::from_millis(10));
             42
         });
 
         assert_eq!(result, 42);
-        assert!(duration >= StdDuration::from_millis(10));
+        assert!(duration >= std::time::Duration::from_millis(10));
     }
 }

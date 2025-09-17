@@ -171,6 +171,33 @@ fn parse_args() -> ArgMatches {
             .help("Run in dry-run mode (no actual monitoring)")
             .action(clap::ArgAction::SetTrue))
         
+        .arg(Arg::new("query")
+            .short('q')
+            .long("query")
+            .value_name("ADDRESS")
+            .help("Query address information (balance, transactions)")
+            .num_args(1))
+        
+        .arg(Arg::new("balance")
+            .short('b')
+            .long("balance")
+            .value_name("ADDRESS")
+            .help("Check balance for specific address")
+            .num_args(1))
+        
+        .arg(Arg::new("transactions")
+            .long("transactions")
+            .value_name("ADDRESS")
+            .help("Show recent transactions for address")
+            .num_args(1))
+        
+        .arg(Arg::new("limit")
+            .long("limit")
+            .value_name("NUMBER")
+            .help("Limit number of transactions to show (default: 10)")
+            .num_args(1)
+            .default_value("10"))
+        
         .arg(Arg::new("version")
             .short('V')
             .long("version")
@@ -256,6 +283,36 @@ async fn handle_simple_commands(matches: &ArgMatches) -> TrackerResult<bool> {
 }
 
 async fn handle_tracker_commands(matches: &ArgMatches, tracker: &mut TokenTransferTracker) -> TrackerResult<()> {
+    // 查询地址信息
+    if let Some(address) = matches.get_one::<String>("query") {
+        query_address_info(address, tracker, matches).await?;
+        return Ok(());
+    }
+    
+    // 查询余额
+    if let Some(address) = matches.get_one::<String>("balance") {
+        query_balance(address, tracker).await?;
+        return Ok(());
+    }
+    
+    // 查询交易
+    if let Some(address) = matches.get_one::<String>("transactions") {
+        let limit: usize = matches.get_one::<String>("limit")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(10);
+        query_transactions(address, tracker, limit).await?;
+        return Ok(());
+    }
+    
+    // 位置参数处理：如果只提供了一个地址，默认查询该地址
+    if let Some(addresses) = matches.get_many::<String>("addresses") {
+        let addresses: Vec<&String> = addresses.collect();
+        if addresses.len() == 1 {
+            query_address_info(addresses[0], tracker, matches).await?;
+            return Ok(());
+        }
+    }
+    
     // 添加地址
     if let Some(address) = matches.get_one::<String>("add-address") {
         tracker.add_address(address.to_string()).await?;
@@ -318,7 +375,135 @@ fn should_start_monitoring(matches: &ArgMatches) -> bool {
     !matches.get_flag("list-addresses") &&
     !matches.get_flag("force-check") &&
     !matches.contains_id("export") &&
-    !matches.get_flag("dry-run")
+    !matches.get_flag("dry-run") &&
+    !matches.contains_id("query") &&
+    !matches.contains_id("balance") &&
+    !matches.contains_id("transactions") &&
+    // 如果只有一个地址参数，也不启动监控（默认查询模式）
+    !(matches.get_many::<String>("addresses").map_or(false, |addrs| addrs.len() == 1))
+}
+
+async fn query_address_info(address: &str, tracker: &TokenTransferTracker, matches: &ArgMatches) -> TrackerResult<()> {
+    println!("🔍 正在查询 SUI 地址: {}", address);
+    println!("================================================");
+    
+    // 查询余额
+    println!("💰 查询地址余额...");
+    if let Ok(balance) = tracker.query_balance(address, Some("0x2::sui::SUI")).await {
+        let sui_balance = balance as f64 / 1_000_000_000.0;
+        println!("💳 SUI 余额: {:.9} SUI ({} MIST)", sui_balance, balance);
+        println!("🪙 代币类型: \"0x2::sui::SUI\"");
+    } else {
+        println!("❌ 无法获取余额信息");
+    }
+    
+    // 查询所有代币余额
+    println!("\n💎 查询所有代币余额...");
+    if let Ok(balances) = tracker.query_all_balances(address).await {
+        println!("📊 总共找到 {} 种代币:", balances.len());
+        for (i, (coin_type, balance)) in balances.iter().enumerate() {
+            if coin_type == "0x2::sui::SUI" {
+                let sui_balance = *balance as f64 / 1_000_000_000.0;
+                println!("   {}. \"{}\": {:.9} SUI", i + 1, coin_type, sui_balance);
+            } else {
+                println!("   {}. \"{}\": {} units", i + 1, coin_type, balance);
+            }
+        }
+    }
+    
+    // 查询交易历史
+    let limit: usize = matches.get_one::<String>("limit")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(5);
+    
+    println!("\n📝 查询最近交易历史...");
+    if let Ok(sent_transactions) = tracker.query_transactions_sent(address, Some(limit as u16)).await {
+        println!("🎯 找到 {} 笔发送的交易:", sent_transactions.len());
+        
+        for (i, tx) in sent_transactions.iter().enumerate() {
+            println!("\n📋 交易 #{}", i + 1);
+            println!("   📄 交易摘要: \"{}\"", tx.digest);
+            if let Some(timestamp) = &tx.timestamp {
+                println!("   🕰️  时间: {}", timestamp.format("%Y-%m-%d %H:%M:%S UTC"));
+            }
+            if let Some(gas_used) = &tx.gas_used {
+                println!("   ⛽ Gas 消耗: \"{}\"", gas_used);
+            }
+            
+            for balance_change in &tx.balance_changes {
+                let amount_f64 = balance_change.amount as f64 / 1_000_000_000.0;
+                if balance_change.amount >= 0 {
+                    println!("   💰 余额变化: +{:.9} SUI (\"{}\")", amount_f64, balance_change.owner);
+                } else {
+                    println!("   💰 余额变化: {:.9} SUI (\"{}\")", amount_f64, balance_change.owner);
+                }
+                println!("      🪙 代币: \"{}\"", balance_change.coin_type);
+            }
+        }
+    }
+    
+    // 查询接收的交易
+    println!("\n📥 查询接收的交易...");
+    if let Ok(received_transactions) = tracker.query_transactions_received(address, Some(3)).await {
+        println!("📨 找到 {} 笔接收的交易:", received_transactions.len());
+        
+        for (i, tx) in received_transactions.iter().enumerate() {
+            println!("\n📋 接收交易 #{}", i + 1);
+            println!("   📄 交易摘要: \"{}\"", tx.digest);
+            
+            // 显示接收到的代币
+            for balance_change in &tx.balance_changes {
+                if balance_change.amount > 0 && balance_change.owner == address {
+                    let amount_f64 = balance_change.amount as f64 / 1_000_000_000.0;
+                    println!("   💰 接收: +{:.9} SUI", amount_f64);
+                }
+            }
+        }
+    }
+    
+    println!("\n🎉 地址查询完成!");
+    println!("💡 提示: 如果没有看到交易，可能是因为:");
+    println!("   1. 地址确实没有交易历史");
+    println!("   2. 交易比较老，需要查询更多历史");
+    println!("   3. 需要查询其他类型的交易过滤器");
+    
+    Ok(())
+}
+
+async fn query_balance(address: &str, tracker: &TokenTransferTracker) -> TrackerResult<()> {
+    println!("💰 查询地址余额: {}", address);
+    
+    if let Ok(balance) = tracker.query_balance(address, Some("0x2::sui::SUI")).await {
+        let sui_balance = balance as f64 / 1_000_000_000.0;
+        println!("💳 SUI 余额: {:.9} SUI ({} MIST)", sui_balance, balance);
+    } else {
+        return Err(TrackerError::network_error("无法获取余额信息"));
+    }
+    
+    Ok(())
+}
+
+async fn query_transactions(address: &str, tracker: &TokenTransferTracker, limit: usize) -> TrackerResult<()> {
+    println!("📝 查询地址交易: {} (限制: {}笔)", address, limit);
+    
+    if let Ok(transactions) = tracker.query_transactions_sent(address, Some(limit as u16)).await {
+        println!("🎯 找到 {} 笔交易:", transactions.len());
+        
+        for (i, tx) in transactions.iter().enumerate() {
+            println!("\n📋 交易 #{}", i + 1);
+            println!("   📄 交易摘要: {}", tx.digest);
+            if let Some(timestamp) = &tx.timestamp {
+                println!("   🕰️  时间: {}", timestamp.format("%Y-%m-%d %H:%M:%S UTC"));
+            }
+            if let Some(gas_used) = &tx.gas_used {
+                println!("   ⛽ Gas 消耗: {}", gas_used);
+            }
+        }
+    } else {
+        return Err(TrackerError::network_error("无法获取交易信息"));
+    }
+    
+    Ok(())
 }
 
 async fn output_final_stats(tracker: &TokenTransferTracker) -> TrackerResult<()> {

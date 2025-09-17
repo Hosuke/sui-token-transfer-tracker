@@ -217,33 +217,11 @@ impl EventMonitor {
     }
 
     fn parse_transfer_event(event: SuiEvent) -> TrackerResult<TransferEvent> {
-        // 解析Sui事件结构，提取转移事件信息
-        // 这里需要根据实际的Sui事件结构进行调整
-        
-        let mut amount = 0;
-        let mut recipient = String::new();
-        let mut token_type = "0x2::sui::SUI".to_string();
+        // 使用新的SuiEvent结构，直接获取字段
+        let amount = event.amount;
+        let recipient = event.recipient.clone();
+        let token_type = event.token_type.clone();
         let event_type = "transfer".to_string();
-
-        // 尝试从解析的JSON中提取信息
-        if let Some(parsed) = event.parsed_json.as_object() {
-            if let Some(value) = parsed.get("value").and_then(|v| v.as_object()) {
-                // 提取金额
-                if let Some(amount_str) = value.get("amount").and_then(|v| v.as_str()) {
-                    amount = amount_str.parse::<u64>().unwrap_or(0);
-                }
-                
-                // 提取接收方
-                if let Some(recipient_addr) = value.get("recipient").and_then(|v| v.as_str()) {
-                    recipient = recipient_addr.to_string();
-                }
-                
-                // 提取代币类型
-                if let Some(token) = value.get("type").and_then(|v| v.as_str()) {
-                    token_type = token.to_string();
-                }
-            }
-        }
 
         if recipient.is_empty() {
             return Err(TrackerError::parse_error(
@@ -252,7 +230,7 @@ impl EventMonitor {
         }
 
         Ok(TransferEvent {
-            transaction_id: event.id.tx_digest,
+            transaction_id: event.id.clone(),
             package_id: event.package_id,
             transaction_module: event.transaction_module,
             sender: event.sender,
@@ -260,7 +238,7 @@ impl EventMonitor {
             amount,
             token_type,
             timestamp: event.timestamp,
-            block_number: event.id.event_seq,
+            block_number: event.block_number,
             event_type,
         })
     }

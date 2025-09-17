@@ -607,7 +607,7 @@ impl OutputFormatter {
         }.to_string()
     }
 
-    fn truncate_address(&self, address: &str) -> String {
+    pub fn truncate_address(&self, address: &str) -> String {
         if address.len() > 10 {
             format!("{}...{}", &address[..6], &address[address.len()-4..])
         } else {

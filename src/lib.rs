@@ -125,7 +125,7 @@ impl TokenTransferTracker {
             }
             
             // 获取初始余额
-            let balance = sui_client.get_balance(address).await.unwrap_or(0);
+            let balance = sui_client.get_balance(address, Some("0x2::sui::SUI")).await.unwrap_or(0);
             let current_time = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -386,7 +386,7 @@ impl TokenTransferTracker {
         }
 
         // 获取初始余额
-        let balance = self.sui_client.get_balance(&address).await?;
+        let balance = self.sui_client.get_balance(&address, Some("0x2::sui::SUI")).await?;
         let current_time = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -445,6 +445,23 @@ impl TokenTransferTracker {
         self.stats.read().await.clone()
     }
 
+    // 公开的查询方法，用于命令行工具
+    pub async fn query_balance(&self, address: &str, coin_type: Option<&str>) -> crate::error::TrackerResult<u64> {
+        self.sui_client.get_balance(address, coin_type).await
+    }
+
+    pub async fn query_all_balances(&self, address: &str) -> crate::error::TrackerResult<Vec<(String, u64)>> {
+        self.sui_client.get_all_balances(address).await
+    }
+
+    pub async fn query_transactions_sent(&self, address: &str, limit: Option<u16>) -> crate::error::TrackerResult<Vec<crate::sui_client::SuiTransaction>> {
+        self.sui_client.query_transactions_sent(address, limit).await
+    }
+
+    pub async fn query_transactions_received(&self, address: &str, limit: Option<u16>) -> crate::error::TrackerResult<Vec<crate::sui_client::SuiTransaction>> {
+        self.sui_client.query_transactions_received(address, limit).await
+    }
+
     pub async fn force_balance_check(&self) -> crate::error::TrackerResult<()> {
         log::info!("Forcing balance check for all addresses");
         
@@ -452,7 +469,7 @@ impl TokenTransferTracker {
         let mut updates = 0;
 
         for address in addresses {
-            match self.sui_client.get_balance(&address).await {
+            match self.sui_client.get_balance(&address, Some("0x2::sui::SUI")).await {
                 Ok(balance) => {
                     let mut addresses = self.monitored_addresses.write().await;
                     if let Some(address_info) = addresses.get_mut(&address) {
@@ -585,7 +602,7 @@ mod tests {
         let tracker = TokenTransferTracker::new(config).await;
         
         match tracker {
-            Ok(mut tracker) => {
+            Ok(tracker) => {
                 // 测试添加有效地址
                 let valid_address = "0x1234567890abcdef1234567890abcdef12345678";
                 let result = tracker.add_address(valid_address.to_string()).await;

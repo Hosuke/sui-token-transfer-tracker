@@ -11,7 +11,9 @@
       "Bash(cat:*)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(timeout 10s cargo test test_balance_alert)",
+      "Bash(gtimeout:*)"
     ],
     "deny": [],
     "ask": []
