@@ -204,13 +204,6 @@ cargo run --example test_graphql_client
 cargo run --example query_address_rpc
 ```
 
-### Run Demo with Simulated Data
-
-```bash
-# See the tool in action with demo data
-cargo run --example demo
-```
-
 ## 🚨 Alert System
 
 The tracker includes a comprehensive alert system that monitors:
@@ -301,8 +294,7 @@ cargo check
 ### Available Examples
 
 - `cargo run --example test_graphql_client` - Test GraphQL connectivity
-- `cargo run --example query_address_rpc` - Real address queries
-- `cargo run --example demo` - Demonstration with simulated data
+- `cargo run --example query_address_rpc` - Real address queries  
 - `cargo run --example simple_sui_test` - Basic connectivity test
 - `cargo run --example test_formatter` - Output formatting test
 
