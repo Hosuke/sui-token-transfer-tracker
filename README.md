@@ -38,33 +38,56 @@ The simplest way to use the tool is to query an address directly:
 cargo run -- 0xaf63b1dbc01a2504d42606e3c57bca22c32c3ef86e809e7694a9fbfdac714dee
 ```
 
-**Example Output (with simulated data for demonstration):**
+**Example Output (with real blockchain data):**
 ```
 🔍 正在查询 SUI 地址: 0xaf63b1dbc01a2504d42606e3c57bca22c32c3ef86e809e7694a9fbfdac714dee
 ================================================
 💰 查询地址余额...
-💳 SUI 余额: 1.000000000 SUI (1000000000 MIST)
+💳 SUI 余额: 0.821300859 SUI (821300859 MIST)
 🪙 代币类型: "0x2::sui::SUI"
 
 💎 查询所有代币余额...
-📊 总共找到 1 种代币:
-   1. "0x2::sui::SUI": 1.000000000 SUI
+📊 总共找到 9 种代币:
+   1. "0x2::sui::SUI": 0.821300859 SUI
+   2. "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN": 6336 units
+   3. "0xa99b8952d4f7d947ea77fe0ecdcc9e5fc0bcab2841d6e2a5aa00c3044e5544b5::eggs::EGGS": 7262 units
+   4. "0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881::bean::BEAN": 10000 units
+   5. "0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD": 80 units
+   6. "0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8::stakedui::STAKEDUI": 4 units
+   7. "0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761f2a784d3::movescription::MOVESCRIPTION": 1 units
+   8. "0x549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55::cert::CERT": 1000 units
+   9. "0xf325ce1300e8dac124071d3152c5c5ee6174914f8bc2161e88329cf579246efc::aaa::AAA": 100000 units
 
 📝 查询最近交易历史...
-🎯 找到 1 笔发送的交易:
+🎯 找到 10 笔发送的交易:
 
 📋 交易 #1
-   📄 交易摘要: "0x1234567890abcdef"
-   🕰️  时间: 2025-09-17 19:55:04 UTC
-   ⛽ Gas 消耗: "1000000"
-   💰 余额变化: -0.100000000 SUI ("0xaf63b1dbc01a2504d42606e3c57bca22c32c3ef86e809e7694a9fbfdac714dee")
+   📄 交易摘要: "61AsPDjbgaLUdfdEQxqrYLre3B6bMCKLKZvxPwvrYxGF"
+   🕰️  时间: 2025-04-19 18:26:35 UTC
+   ⛽ Gas 消耗: "789520"
+   💰 余额变化: -1.000789520 SUI ("0xaf63b1dbc01a2504d42606e3c57bca22c32c3ef86e809e7694a9fbfdac714dee")
       🪙 代币: "0x2::sui::SUI"
 
+📋 交易 #2
+   📄 交易摘要: "CpWzehZLZGNJeKMZEJGFD6hEejsAqNc6WC2kpFgRBL7H"
+   🕰️  时间: 2025-04-19 17:56:45 UTC
+   ⛽ Gas 消耗: "1175720"
+   💰 余额变化: -0.001175720 SUI ("0xaf63b1dbc01a2504d42606e3c57bca22c32c3ef86e809e7694a9fbfdac714dee")
+      🪙 代币: "0x2::sui::SUI"
+
+📋 交易 #3
+   📄 交易摘要: "3Wg3E5gWQPgGzb4CzwXu8vL2M4SJC5t1EFBjQZN2L9Ra"
+   🕰️  时间: 2025-04-19 17:45:22 UTC
+   ⛽ Gas 消耗: "18345976"
+
 📥 查询接收的交易...
-📨 找到 1 笔接收的交易:
+📨 找到 10 笔接收的交易:
 
 📋 接收交易 #1
-   📄 交易摘要: "0x1234567890abcdef"
+   📄 交易摘要: "61AsPDjbgaLUdfdEQxqrYLre3B6bMCKLKZvxPwvrYxGF"
+
+📋 接收交易 #2
+   📄 交易摘要: "CpWzehZLZGNJeKMZEJGFD6hEejsAqNc6WC2kpFgRBL7H"
 
 🎉 地址查询完成!
 💡 提示: 如果没有看到交易，可能是因为:
@@ -223,16 +246,18 @@ The tracker includes a comprehensive alert system that monitors:
 
 ## 🏗️ Technical Architecture
 
-### Built with Official Sui SDK
+### Built with Official Sui SDK and JSON-RPC APIs
 
-- **GraphQL Client**: Uses `sui-graphql-client` for efficient data queries
-- **Type Safety**: Built with `sui-sdk-types` for robust type checking
+- **Real Data Access**: Uses SUI JSON-RPC APIs (`suix_getBalance`, `suix_getAllBalances`, `suix_queryTransactionBlocks`) for live blockchain data
+- **GraphQL Client**: Uses `sui-graphql-client` for chain metadata and health checks
+- **Type Safety**: Built with `sui-sdk-types` for robust type checking  
+- **HTTP Client**: `reqwest` for reliable JSON-RPC communication
 - **Async Runtime**: Powered by Tokio for high-performance concurrent operations
-- **Error Handling**: Comprehensive error handling with custom error types
+- **Error Handling**: Comprehensive error handling with custom error types and overflow protection
 
 ### Key Components
 
-1. **SuiClient**: GraphQL client wrapper for blockchain interaction
+1. **SuiClient**: JSON-RPC client for real blockchain data queries and GraphQL for metadata
 2. **EventMonitor**: Real-time event monitoring and processing
 3. **AlertSystem**: Intelligent alerting with cooldown and filtering
 4. **TransactionProcessor**: Transaction data processing and analysis
@@ -240,10 +265,10 @@ The tracker includes a comprehensive alert system that monitors:
 
 ### Network Support
 
-- **Mainnet**: `https://sui-mainnet.mystenlabs.com/graphql`
-- **Testnet**: `https://sui-testnet.mystenlabs.com/graphql`
-- **Devnet**: `https://sui-devnet.mystenlabs.com/graphql`
-- **Localhost**: `http://localhost:9000/graphql`
+- **Mainnet**: `https://fullnode.mainnet.sui.io:443` (JSON-RPC) + `https://sui-mainnet.mystenlabs.com/graphql` (GraphQL)
+- **Testnet**: `https://fullnode.testnet.sui.io:443` (JSON-RPC) + `https://sui-testnet.mystenlabs.com/graphql` (GraphQL)  
+- **Devnet**: `https://fullnode.devnet.sui.io:443` (JSON-RPC) + `https://sui-devnet.mystenlabs.com/graphql` (GraphQL)
+- **Localhost**: `http://localhost:9000` (JSON-RPC) + `http://localhost:9000/graphql` (GraphQL)
 
 ## 🧪 Development & Testing
 
@@ -321,40 +346,26 @@ tail -f tracker.log
 - **Query Speed**: Sub-second response times for most operations
 - **Concurrent Addresses**: Tested with 50+ addresses simultaneously
 
-## 🚧 Current Limitations
+## 🚀 Real Data Implementation
 
-This is a hackathon project with some current limitations:
+This tool now provides **100% real blockchain data** through SUI's official JSON-RPC APIs:
 
-1. **📊 Simulated Data**: Currently uses simulated data for balance and transaction queries while the official SUI GraphQL schema is rapidly evolving. The tool validates addresses and tests network connectivity but returns demo data for demonstration purposes.
+### ✅ Real Data Features
 
-2. **✅ Real Network Connection**: Chain ID and network health checks use real GraphQL queries, proving the connection works.
+1. **🔍 Live Balance Queries**: Real-time balance checking using `suix_getBalance` API
+2. **💎 Multi-Token Support**: Query all token types with `suix_getAllBalances` 
+3. **📊 Transaction History**: Real transaction data via `suix_queryTransactionBlocks`
+4. **🌐 Network Validation**: Actual chain ID verification and health checks
+5. **⚡ Live Gas Data**: Real gas consumption and cost analysis
+6. **🕰️ Accurate Timestamps**: Precise transaction timing from blockchain
 
-3. **🔄 Future Implementation**: Real balance and transaction queries will be implemented once the GraphQL schema stabilizes.
+### 🎯 Data Authenticity
 
-4. **🎯 Ready for Real Data**: The architecture is designed to easily switch from simulated to real data queries.
-
-## 📊 What's Real vs Simulated
-
-### ✅ Real Data
-- Chain ID queries (`35834a8a` for mainnet)
-- Network connectivity tests
-- Address format validation
-- GraphQL client connection
-
-### 🎭 Simulated Data (Clearly Logged)
-- Balance queries (always returns 1 SUI)
-- Transaction history (returns sample transaction)
-- Token listings
-
-The application logs clearly indicate when simulated data is being used:
-
-```
-[2025-09-17T20:02:05Z INFO  sui_token_transfer_tracker] Initializing SUI Token Transfer Tracker
-[2025-09-17T20:02:06Z WARN  sui_token_transfer_tracker::sui_client] 使用模拟余额数据 - 地址: 0xaf63...
-[2025-09-17T20:02:07Z WARN  sui_token_transfer_tracker::sui_client] 使用模拟交易数据 - 地址: 0xaf63...
-```
-
-This transparency ensures users understand they're seeing demo data while the tool validates connectivity and demonstrates the user interface.
+- **Balance Data**: Directly from SUI mainnet nodes (e.g., 0.821300859 SUI)
+- **Transaction Hashes**: Real digests like `61AsPDjbgaLUdfdEQxqrYLre3B6bMCKLKZvxPwvrYxGF`
+- **Gas Costs**: Actual network fees (789520 - 18345976 MIST range)
+- **Token Types**: Live discovery of all token holdings
+- **Network Status**: Real-time chain connectivity validation
 
 ## 🤝 Contributing
 

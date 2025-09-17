@@ -14,6 +14,9 @@ sui-graphql-client = { git = "https://github.com/mystenlabs/sui-rust-sdk", packa
 sui-sdk-types = { git = "https://github.com/mystenlabs/sui-rust-sdk", package = "sui-sdk-types", branch = "master" }
 cynic = "3.8.0"
 
+# HTTP客户端用于JSON-RPC调用
+reqwest = { version = "0.11", features = ["json"] }
+
 # 异步运行时
 tokio = { version = "1.28", features = ["full"] }
 
@@ -24,9 +27,6 @@ toml = "0.8"
 
 # 命令行解析
 clap = { version = "4.3", features = ["derive"] }
-
-# HTTP客户端
-reqwest = { version = "0.11", features = ["json"] }
 
 # 错误处理
 anyhow = "1.0"
