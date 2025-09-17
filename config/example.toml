@@ -1,0 +1,67 @@
+# SUI Token Transfer Tracker Configuration
+
+[network]
+# SUI network RPC endpoint URL
+rpc_url = "https://fullnode.mainnet.sui.io:443"
+# WebSocket URL for real-time events (if supported)
+websocket_url = "wss://fullnode.mainnet.sui.io"
+# Network timeout in seconds
+timeout_seconds = 30
+
+[monitoring]
+# Polling interval in seconds for checking new events
+poll_interval_seconds = 10
+# Maximum number of transaction records to keep per address
+max_history_records = 1000
+# Number of transactions to fetch in each batch
+batch_size = 50
+# Interval in hours for cleaning up old transaction records
+cleanup_interval_hours = 24
+
+[addresses]
+# List of SUI addresses to monitor
+# You can add as many addresses as you want
+monitored = [
+    # "0x1234567890abcdef1234567890abcdef12345678",
+    # "0xabcdef1234567890abcdef1234567890abcdef12"
+]
+
+[alerts]
+# Low balance threshold in MIST (1 SUI = 1,000,000,000 MIST)
+low_balance_threshold = 1000000000
+# Large transfer threshold in MIST
+large_transfer_threshold = 10000000000
+# Enable console alerts
+enable_console_alerts = true
+# Enable file alerts (writes to alert_file_path)
+enable_file_alerts = false
+# Path for alert log file
+alert_file_path = "alerts.log"
+# Cooldown period in seconds between similar alerts
+cooldown_period_seconds = 300
+
+[output]
+# Enable colored output in terminal
+use_colors = true
+# Show timestamps in output
+show_timestamps = true
+# Maximum number of recent transactions to display
+max_recent_transactions = 10
+# Interval in seconds for balance summary output
+balance_summary_interval = 300
+# Table width for formatted output
+table_width = 80
+# Enable JSON output format
+enable_json_output = false
+# Enable CSV output format
+enable_csv_output = false
+
+[logging]
+# Logging level: trace, debug, info, warn, error
+level = "info"
+# Path for log file (empty means console only)
+file_path = "tracker.log"
+# Maximum log file size in MB
+max_file_size_mb = 10
+# Number of rotated log files to keep
+rotate_files = 5

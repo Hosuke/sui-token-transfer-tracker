@@ -1,0 +1,43 @@
+# SUI Token Transfer Tracker - Testnet Configuration
+
+[network]
+# SUI Testnet RPC endpoint
+rpc_url = "https://fullnode.testnet.sui.io:443"
+websocket_url = "wss://fullnode.testnet.sui.io"
+timeout_seconds = 30
+
+[monitoring]
+# More frequent polling for testing
+poll_interval_seconds = 5
+max_history_records = 500
+batch_size = 20
+cleanup_interval_hours = 6
+
+[addresses]
+# Example testnet addresses - replace with your own
+monitored = [
+    "0x1234567890abcdef1234567890abcdef12345678",
+    "0xabcdef1234567890abcdef1234567890abcdef12"
+]
+
+[alerts]
+# Lower thresholds for testing
+low_balance_threshold = 100000000
+large_transfer_threshold = 1000000000
+enable_console_alerts = true
+enable_file_alerts = true
+alert_file_path = "testnet_alerts.log"
+cooldown_period_seconds = 60
+
+[output]
+use_colors = true
+show_timestamps = true
+max_recent_transactions = 20
+balance_summary_interval = 120
+table_width = 80
+
+[logging]
+level = "debug"
+file_path = "testnet_tracker.log"
+max_file_size_mb = 5
+rotate_files = 3

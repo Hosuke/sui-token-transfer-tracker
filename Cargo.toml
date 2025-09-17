@@ -1,0 +1,105 @@
+[package]
+name = "sui-token-transfer-tracker"
+version = "0.1.0"
+edition = "2021"
+authors = ["Geyang Huang<sukebeta@outlook.com>"]
+description = "Real-time SUI token transfer monitoring tool"
+license = "MIT"
+repository = "https://github.com/hosuke/sui-token-transfer-tracker"
+readme = "README.md"
+
+[dependencies]
+# Sui SDK - using official Rust SDK
+sui-graphql-client = { git = "https://github.com/mystenlabs/sui-rust-sdk", package = "sui-graphql-client", branch = "master" }
+sui-sdk-types = { git = "https://github.com/mystenlabs/sui-rust-sdk", package = "sui-sdk-types", branch = "master" }
+cynic = "3.8.0"
+
+# 异步运行时
+tokio = { version = "1.28", features = ["full"] }
+
+# 序列化
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# 命令行解析
+clap = { version = "4.3", features = ["derive"] }
+
+# HTTP客户端
+reqwest = { version = "0.11", features = ["json"] }
+
+# 错误处理
+anyhow = "1.0"
+thiserror = "1.0"
+
+# 日志
+log = "0.4"
+env_logger = "0.10"
+
+# 时间处理
+chrono = { version = "0.4", features = ["serde"] }
+
+# 数据处理
+tokio-stream = "0.1"
+futures = "0.3"
+
+# 配置管理
+config = "0.13"
+
+# 工具
+uuid = { version = "1.3", features = ["v4"] }
+base64 = "0.21"
+hex = "0.4"
+
+# Web框架 (可选，用于Web界面)
+warp = { version = "0.3", optional = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockall = "0.11"
+
+[features]
+default = []
+web-ui = ["warp"]
+
+[[bin]]
+name = "sui-token-transfer-tracker"
+path = "src/main.rs"
+
+[[example]]
+name = "minimal_test"
+path = "examples/minimal_test.rs"
+
+[[example]]
+name = "test_formatter"
+path = "examples/test_formatter.rs"
+
+[[example]]
+name = "demo"
+path = "examples/demo.rs"
+
+[[example]]
+name = "query_address"
+path = "examples/query_address.rs"
+
+[[example]]
+name = "query_real_address"
+path = "examples/query_real_address.rs"
+
+[[example]]
+name = "simple_sui_test"
+path = "examples/simple_sui_test.rs"
+
+[[example]]
+name = "query_address_rpc"
+path = "examples/query_address_rpc.rs"
+
+[lib]
+name = "sui_token_transfer_tracker"
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

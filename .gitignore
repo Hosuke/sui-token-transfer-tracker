@@ -1,0 +1,41 @@
+# Rust
+target/
+Cargo.lock
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+tracker.log
+demo_tracker.log
+testnet_tracker.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Generated config files
+config.toml
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Local environment
+.env
+.env.local

@@ -1,0 +1,42 @@
+# SUI Token Transfer Tracker Demo Configuration
+
+[network]
+rpc_url = "https://fullnode.mainnet.sui.io:443"
+websocket_url = "wss://fullnode.mainnet.sui.io"
+timeout_seconds = 30
+
+[monitoring]
+poll_interval_seconds = 15
+max_history_records = 100
+batch_size = 20
+cleanup_interval_hours = 24
+
+[addresses]
+# Demo addresses - replace with real addresses you want to monitor
+monitored = [
+    "0x5e3cd377b5bdf4152fdb8793a8b76f5716df0a5c8f2d9a3d4c6e7f8a9b0c1d2e",
+    "0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890"
+]
+
+[alerts]
+low_balance_threshold = 1000000000  # 1 SUI
+large_transfer_threshold = 5000000000  # 5 SUI
+enable_console_alerts = true
+enable_file_alerts = false
+alert_file_path = "demo_alerts.log"
+cooldown_period_seconds = 60
+
+[output]
+use_colors = true
+show_timestamps = true
+max_recent_transactions = 5
+balance_summary_interval = 30
+table_width = 80
+enable_json_output = false
+enable_csv_output = false
+
+[logging]
+level = "info"
+file_path = "demo_tracker.log"
+max_file_size_mb = 5
+rotate_files = 3
