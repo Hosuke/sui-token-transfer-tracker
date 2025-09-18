@@ -39,3 +39,11 @@ config.toml
 # Local environment
 .env
 .env.local
+
+# Claude Code assistant files
+.claude
+
+# Technical requirement documents (development artifacts)
+TECHNICAL_REQUIREMENTS.md
+REQUIREMENTS.md
+项目文件结构.md
