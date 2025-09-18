@@ -204,11 +204,11 @@ cargo run --example test_graphql_client
 cargo run --example query_address_rpc
 ```
 
-## 🚨 Alert System
+## 🚨 Alert System (Future Development)
 
-The tracker includes a comprehensive alert system that monitors:
+The tracker includes a comprehensive alert system framework for future development:
 
-### Alert Types
+### 🔮 Planned Alert Types
 
 1. **💰 Low Balance Alert**
    - Triggered when address balance falls below threshold
@@ -230,12 +230,24 @@ The tracker includes a comprehensive alert system that monitors:
    - RPC endpoint problems
    - GraphQL query failures
 
-### Alert Output Example
+### 🚧 Current Status
 
+The alert system code framework exists but requires debugging and refinement before it can be reliably used in production. Currently focusing on the core data querying functionality which works perfectly with real SUI blockchain data.
+
+### 🛠️ Configuration Ready
+
+Alert configuration is already supported in the config file:
+
+```toml
+[alerts]
+low_balance_threshold = 1000000000      # 1 SUI
+large_transfer_threshold = 10000000000  # 10 SUI
+enable_console_alerts = true
+enable_file_alerts = false
+alert_file_path = "alerts.log"
 ```
-[2025-09-17 19:48:25] ALERT [LOW_BALANCE]: Low balance alert for 0xaf63...4dee: 0.500000000 SUI (threshold: 1.000000000 SUI)
-[2025-09-17 19:48:30] ALERT [LARGE_TRANSFER]: Large transfer detected: 0xabcd...ef12 → 0x5678...9012 | Amount: 10.000000000 SUI | TX: 0x9999...8888
-```
+
+**Note**: While the alert system is being developed, you can use the monitoring mode to observe balance and transaction changes in real-time.
 
 ## 🏗️ Technical Architecture
 
@@ -250,11 +262,16 @@ The tracker includes a comprehensive alert system that monitors:
 
 ### Key Components
 
-1. **SuiClient**: JSON-RPC client for real blockchain data queries and GraphQL for metadata
-2. **EventMonitor**: Real-time event monitoring and processing
-3. **AlertSystem**: Intelligent alerting with cooldown and filtering
-4. **TransactionProcessor**: Transaction data processing and analysis
-5. **OutputFormatter**: Beautiful CLI output with emoji support
+1. **SuiClient**: Hybrid JSON-RPC + GraphQL client for real blockchain data queries and metadata
+2. **CLI Interface**: Complete command-line interface supporting direct queries and monitoring
+3. **Configuration System**: TOML config files with CLI parameter override support
+4. **Output Formatter**: Beautiful emoji-rich CLI output with multiple format support
+5. **Real Data APIs**: Live balance, multi-token, and transaction history from SUI mainnet
+
+**Future Components**:
+- **EventMonitor**: Real-time event monitoring (framework exists, needs refinement)
+- **AlertSystem**: Intelligent alerting with thresholds (framework exists, needs debugging)
+- **TransactionProcessor**: Advanced transaction analysis (basic implementation exists)
 
 ### Network Support
 
